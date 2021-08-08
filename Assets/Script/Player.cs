@@ -3,64 +3,185 @@ using System.Collections.Generic;
 using UnityEngine;
 
 public class Player : MonoBehaviour
-{    //public or private reference
-    //data type (imt, float, bool, string)
-    //every variable has a name
-    //option value assighned
-    private float _speed = 3.5f;
+{  
+    [SerializeField]
+    private float _speed = 5f;
+    private float _speedMultiplier = 2;
 
-    
+    [SerializeField]
+    private GameObject _laserPrefab;
+    [SerializeField]
+    private GameObject _tripleShotPrefab;
+    [SerializeField]
+    private float _fireRate = 0.5f;
+    private float _canFire = -1f;
+    [SerializeField]
+    private int _lives = 3;
+    private SpawnManager _spawnManager;
+    private bool _isTripleShotActive = false;
+    private bool _isSpeedBoostActive = false;
+    private bool _isShieldsActive = false;
+    [SerializeField]
+    private GameObject _shieldVisualizer;
+    [SerializeField]
+    private int _score;
+    private UIManager _uiManager;
+
+
+
+
+
 
     // Start is called before the first frame update
     void Start()
     {
-        //take the current position = new position (0, 0, 0) 
+       
         transform.position = new Vector3(0, 0, 0);
+        _spawnManager = GameObject.Find("Spawn_Manager").GetComponent<SpawnManager>();
+        _uiManager = GameObject.Find("Canvas").GetComponent<UIManager>();
+
+        if(_spawnManager == null)
+        {
+            Debug.LogError("The Spawn Manager is Null.");
+        }
+
+        if(_uiManager == null)
+        {
+            Debug.LogError("The UI Manager is null.");
+        }
     }
 
     // Update is called once per frame
     void Update()
     {
+        CalculateMovement();
+        if (Input.GetKey(KeyCode.Space) && Time.time > _canFire)
+        {
+            FireLaser();
+        }
+    }
+
+    void CalculateMovement()
+    {
         float horizontalInput = Input.GetAxis("Horizontal");
         float verticalInput = Input.GetAxis("Vertical");
 
 
-        //Vector3(1, 0, 0) * 0 * 3.5f * real time
-        // transform.Translate(Vector3.right * horizontalInput * _speed * Time.deltaTime);
-        //transform.Translate(Vector3.up * verticalInput * _speed * Time.deltaTime);
-
         Vector3 direction = new Vector3(horizontalInput, verticalInput, 0);
 
-        transform.Translate(direction * _speed * Time.deltaTime);
 
-        //if player position on the y is greater than 0
-        //y position = 0
-        //else if position on y is less that -3.8f
-        //y pos = -3.8f
+        if (_isSpeedBoostActive)
+        {
+            transform.Translate(direction * _speed * _speedMultiplier * Time.deltaTime);
+        }
+        else
+        {
+            transform.Translate(direction * _speed * Time.deltaTime);
+        }
+      
+
 
         if (transform.position.y >= 0)
         {
             transform.position = new Vector3(transform.position.x, 0, 0);
         }
-        else if(transform.position.y <= -3.8f)
+        else if (transform.position.y <= -3.8f)
         {
             transform.position = new Vector3(transform.position.x, -3.8f, 0);
         }
 
-        //if the player on the x > 11
-        //x pos = -11
-        //else if player on the x is lless that -11
-        //x pos = 11
+        
 
         if (transform.position.x > 11)
         {
             transform.position = new Vector3(-11, transform.position.y, 0);
         }
 
-        else if(transform.position.x < -11)
+        else if (transform.position.x < -11)
         {
             transform.position = new Vector3(11, transform.position.y, 0);
         }
+    }
+
+    void FireLaser()
+    {  
+       _canFire = Time.time + _fireRate;
+
+        if(_isTripleShotActive == true)
+        {
+            Instantiate(_tripleShotPrefab, transform.position, Quaternion.identity);
+        }
+        else
+        {
+          Instantiate(_laserPrefab, transform.position + new Vector3(0, 1.05f, 0), Quaternion.identity);   
+        }
+      
+
+        
+    }
+
+    public void Damage()
+    {
+
+        if(_isShieldsActive == true)
+        {
+            _isShieldsActive = false;
+            _shieldVisualizer.SetActive(false);
+            return;
+        }
+
+        _lives--;
+
+        _uiManager.UpdateLives(_lives);
+
+        if (_lives < 1)
+        {
+            _spawnManager.OnPlayerDeath();
+            Destroy(this.gameObject);
+        }
+    }
+    public void TripleShotActive()
+    {
+        _isTripleShotActive = true;
+        StartCoroutine(TripleShotPowerDownRoutine());
 
     }
+  
+       IEnumerator TripleShotPowerDownRoutine()
+    {
+        yield return new WaitForSeconds(5.0f);
+        _isTripleShotActive = false;
+    }
+    
+    public void SpeedBoostActive()
+    {  
+        _isSpeedBoostActive = true;
+              
+        StartCoroutine(SpeedBoostPowerDownRoutine());
+  
+    }
+
+    IEnumerator SpeedBoostPowerDownRoutine()
+    {
+        
+        yield return new WaitForSeconds(5.0f);
+              
+        _isSpeedBoostActive = false; 
+        
+    }
+
+    public void ShieldsActive()
+    {
+        _isShieldsActive = true;
+        _shieldVisualizer.SetActive(true);
+    }
+
+    public void AddScore(int points)
+    {
+        _score += points;
+        _uiManager.UpdateScore(_score);
+
+    }
+    //Method to add 10 to the score
+    //COmmunicate with the UI to update the score
 }
