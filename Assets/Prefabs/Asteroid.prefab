@@ -114,6 +114,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   _rotateSpeed: 19
+  _explosionPrefab: {fileID: 7849393625440864364, guid: 4a2f62e5b20198f4a97f02ab4e855232, type: 3}
 --- !u!50 &7562002970257560951
 Rigidbody2D:
   serializedVersion: 4
