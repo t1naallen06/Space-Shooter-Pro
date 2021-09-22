@@ -9,7 +9,15 @@ public class Astroid : MonoBehaviour
     private float _rotateSpeed = 19.0f;
     [SerializeField]
     private GameObject _explosionPrefab;
-  
+    private SpawnManager _spawnManager;
+
+
+
+    private void Start()
+    {
+        _spawnManager = GameObject.Find("Spawn_Manager").GetComponent<SpawnManager>();
+    }
+
     // Update is called once per frame
     void Update()
     {
@@ -27,6 +35,7 @@ public class Astroid : MonoBehaviour
         {
             Instantiate(_explosionPrefab, transform.position, Quaternion.identity);
             Destroy(other.gameObject);
+            _spawnManager.StartSpawning();
             Destroy(this.gameObject, 0.25f);
 
         }
