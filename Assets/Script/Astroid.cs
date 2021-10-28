@@ -11,6 +11,8 @@ public class Astroid : MonoBehaviour
     private GameObject _explosionPrefab;
     private SpawnManager _spawnManager;
 
+   
+
 
 
     private void Start()
@@ -37,8 +39,8 @@ public class Astroid : MonoBehaviour
             Destroy(other.gameObject);
             _spawnManager.StartSpawning();
             Destroy(this.gameObject, 0.25f);
-
+          
         }
-
+         
     }
 }
